@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Client Intake — Steven Casteel</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #0d0d0d;
+      color: #e0e0e0;
+      font-family: sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 2rem;
+    }
+
+    .card {
+      background: #1a1a1a;
+      border: 1px solid #2a2a2a;
+      border-radius: 8px;
+      padding: 2.5rem;
+      width: 100%;
+      max-width: 480px;
+    }
+
+    .card h1 {
+      font-size: 1.4rem;
+      font-weight: 400;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.4rem;
+    }
+
+    .card p {
+      color: #666;
+      font-size: 0.85rem;
+      margin-bottom: 2rem;
+    }
+
+    label {
+      display: block;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #888;
+      margin-bottom: 0.4rem;
+    }
+
+    input {
+      width: 100%;
+      background: #111;
+      border: 1px solid #2a2a2a;
+      border-radius: 4px;
+      color: #e0e0e0;
+      font-size: 0.95rem;
+      padding: 0.65rem 0.85rem;
+      margin-bottom: 1.25rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    input:focus { border-color: #555; }
+
+    input[readonly] {
+      color: #888;
+      cursor: default;
+    }
+
+    button {
+      width: 100%;
+      background: #e0e0e0;
+      color: #0d0d0d;
+      border: none;
+      border-radius: 4px;
+      padding: 0.75rem;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      letter-spacing: 0.04em;
+      transition: background 0.2s;
+      margin-top: 0.5rem;
+    }
+
+    button:hover { background: #fff; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Client Intake</h1>
+    <p>Steven Casteel · stevencasteel.com</p>
+
+    <label for="client">Client</label>
+    <input type="text" id="client" name="client" readonly />
+
+    <label for="name">Full Name</label>
+    <input type="text" id="name" name="name" placeholder="Jane Doe" />
+
+    <label for="email">Email</label>
+    <input type="email" id="email" name="email" placeholder="jane@example.com" />
+
+    <label for="project">Project / Notes</label>
+    <input type="text" id="project" name="project" placeholder="Brief description..." />
+
+    <button type="button">Submit</button>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const client = params.get('client');
+    const field = document.getElementById('client');
+
+    if (client) {
+      // "mike-smith" → "Mike Smith"
+      field.value = client
+        .split('-')
+        .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+        .join(' ');
+    } else {
+      field.value = 'Unknown';
+    }
+  </script>
+</body>
+</html>
