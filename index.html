@@ -1,32 +1,571 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Steven Casteel</title>
-    <style>
-        body {
-            font-family: sans-serif;
-            max-width: 600px;
-            margin: 40px auto;
-            padding: 0 20px;
-            line-height: 1.6;
-        }
-        h1 { border-bottom: 1px solid #ccc; padding-bottom: 10px; }
-        ul { list-style-type: none; padding: 0; }
-        li { margin: 10px 0; }
-        a { color: #0066cc; text-decoration: none; font-weight: bold; }
-        a:hover { text-decoration: underline; }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Steven Casteel // Central Terminal</title>
+  <style>
+    :root {
+      --void-bg: #07080b;
+      --surface-bg: #0c0e12;
+      --surface-elevated: #141820;
+      --surface-highlight: #1d222d;
+      --signal-green: #22c55e;
+      --signal-green-glow: rgba(34, 197, 94, 0.45);
+      --signal-red: #ef4444;
+      --signal-red-glow: rgba(239, 68, 68, 0.45);
+      --signal-yellow: #eab308;
+      --signal-yellow-glow: rgba(234, 179, 8, 0.45);
+
+      --shadow-light: -4px -4px 12px rgba(255, 255, 255, 0.03);
+      --shadow-dark: 6px 6px 18px rgba(0, 0, 0, 0.75);
+      --shadow-inset-light: inset -2px -2px 6px rgba(255, 255, 255, 0.01);
+      --shadow-inset-dark: inset 3px 3px 10px rgba(0, 0, 0, 0.9);
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100vw;
+      height: 100vh;
+      background-color: #050505;
+      color: #a0aec0;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: "SF Mono", Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    .app-wrapper {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle, #0a0d14 0%, #030406 100%);
+    }
+
+    /* Outer Cabinet Frame mimicking the physical layout of BOX BATTLE */
+    .cabinet-outer {
+      position: relative;
+      width: min(95vw, 81.2vh);
+      height: min(111vw, 95vh);
+      border-radius: 20px;
+      background: #0f1218;
+      padding: 2.5vmin;
+      box-shadow:
+        -8px -8px 24px rgba(255, 255, 255, 0.02),
+        8px 8px 36px rgba(0, 0, 0, 0.95),
+        inset 0 0 30px rgba(0, 0, 0, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.01);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-sizing: border-box;
+    }
+
+    /* Screen Area */
+    .screen-inner {
+      width: 100%;
+      height: 100%;
+      background: var(--void-bg);
+      border-radius: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding: 2.5vmin;
+      box-sizing: border-box;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* CRT Overlay Effects */
+    .crt-scanlines {
+      position: relative;
+    }
+    .crt-scanlines::after {
+      content: " ";
+      display: block;
+      position: absolute;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      right: 0;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.45) 50%);
+      z-index: 99;
+      background-size: 100% 4px;
+      pointer-events: none;
+    }
+
+    .crt-flicker {
+      animation: crt-flicker-animation 0.15s infinite alternate;
+    }
+    @keyframes crt-flicker-animation {
+      0% { opacity: 0.985; }
+      100% { opacity: 1; }
+    }
+
+    /* Top Gateway Panel pointing to www.stevencasteel.com */
+    .gateway-panel {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.2vmin 2vmin;
+      border-radius: 1vmin;
+      background: var(--surface-bg);
+      box-shadow: var(--shadow-inset-light), var(--shadow-inset-dark);
+      border: 1px solid rgba(255, 255, 255, 0.02);
+      box-sizing: border-box;
+      z-index: 10;
+    }
+
+    .gateway-status {
+      display: flex;
+      align-items: center;
+      gap: 1.2vmin;
+    }
+
+    .led-dot {
+      width: 1.2vmin;
+      height: 1.2vmin;
+      border-radius: 25%;
+      background: var(--signal-green);
+      box-shadow: 0 0 8px var(--signal-green), 0 0 16px var(--signal-green-glow);
+    }
+
+    .gateway-label {
+      font-size: 1.1vmin;
+      font-weight: bold;
+      letter-spacing: 0.15em;
+      color: #718096;
+    }
+
+    .gateway-link {
+      font-size: 1.3vmin;
+      font-weight: bold;
+      letter-spacing: 0.15em;
+      color: var(--signal-green);
+      text-decoration: none;
+      text-shadow: 0 0 8px var(--signal-green-glow);
+      transition: color 0.15s ease, text-shadow 0.15s ease;
+    }
+
+    .gateway-link:hover {
+      color: #4ade80;
+      text-shadow: 0 0 12px #4ade80;
+    }
+
+    /* Central Title Block */
+    .title-banner {
+      text-align: center;
+      z-index: 2;
+      margin-top: 1.5vmin;
+    }
+
+    .system-tag {
+      font-size: 1.1vmin;
+      color: #4a5568;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      font-weight: bold;
+      border: 1px solid rgba(255, 255, 255, 0.03);
+      padding: 0.5vmin 1.4vmin;
+      border-radius: 0.4vmin;
+      background: rgba(0, 0, 0, 0.2);
+      display: inline-block;
+      margin-bottom: 1.5vmin;
+    }
+
+    .title-banner h1 {
+      font-size: 3.8vmin;
+      margin: 0;
+      letter-spacing: 0.2em;
+      font-weight: 900;
+      color: #ffffff;
+      text-shadow: 0 4px 20px rgba(0, 0, 0, 0.95);
+      text-transform: uppercase;
+    }
+
+    .subtitle-text {
+      font-size: 1.25vmin;
+      color: var(--signal-green);
+      margin: 0.8vmin 0 0;
+      letter-spacing: 0.35em;
+      font-weight: bold;
+      text-shadow: 0 0 8px var(--signal-green-glow);
+    }
+
+    /* Buttons Hub */
+    .btn-container {
+      width: 100%;
+      max-width: 58vmin;
+      display: flex;
+      flex-direction: column;
+      gap: 1.8vmin;
+      z-index: 2;
+    }
+
+    .neo-btn-large {
+      display: flex;
+      align-items: center;
+      position: relative;
+      background: #0f1218;
+      box-shadow:
+        -4px -4px 10px rgba(255, 255, 255, 0.015),
+        6px 6px 15px rgba(0, 0, 0, 0.8),
+        inset 1px 1px 0px rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.03);
+      padding: 2.2vmin 3.2vmin;
+      border-radius: 1.2vmin;
+      cursor: pointer;
+      width: 100%;
+      box-sizing: border-box;
+      transition: all 0.15s cubic-bezier(0.2, 0.8, 0.2, 1);
+      outline: none;
+      text-decoration: none;
+      text-align: left;
+    }
+
+    .neo-btn-large:hover {
+      background: #0c0e12;
+      border-color: var(--signal-green);
+      box-shadow:
+        0 0 15px rgba(34, 197, 94, 0.15),
+        inset 0 0 8px rgba(34, 197, 94, 0.1),
+        6px 6px 18px rgba(0, 0, 0, 0.95);
+    }
+
+    .neo-btn-large:active {
+      transform: scale(0.98);
+    }
+
+    /* Indicator Light Left of the Button Label */
+    .btn-indicator-light {
+      width: 1vmin;
+      height: 1vmin;
+      border-radius: 50%;
+      background: #1e2430;
+      margin-right: 2.4vmin;
+      transition: all 0.15s ease;
+      flex-shrink: 0;
+      border: 1px solid rgba(0, 0, 0, 0.5);
+    }
+
+    .neo-btn-large:hover .btn-indicator-light {
+      background: var(--signal-green);
+      box-shadow:
+        0 0 10px var(--signal-green),
+        0 0 20px var(--signal-green-glow);
+    }
+
+    /* Color customizer for secondary projects */
+    .neo-btn-large.color-yellow:hover {
+      border-color: var(--signal-yellow);
+      box-shadow:
+        0 0 15px rgba(234, 179, 8, 0.15),
+        inset 0 0 8px rgba(234, 179, 8, 0.1),
+        6px 6px 18px rgba(0, 0, 0, 0.95);
+    }
+    .neo-btn-large.color-yellow:hover .btn-indicator-light {
+      background: var(--signal-yellow);
+      box-shadow:
+        0 0 10px var(--signal-yellow),
+        0 0 20px var(--signal-yellow-glow);
+    }
+
+    .neo-btn-large.color-red:hover {
+      border-color: var(--signal-red);
+      box-shadow:
+        0 0 15px rgba(239, 68, 68, 0.15),
+        inset 0 0 8px rgba(239, 68, 68, 0.1),
+        6px 6px 18px rgba(0, 0, 0, 0.95);
+    }
+    .neo-btn-large.color-red:hover .btn-indicator-light {
+      background: var(--signal-red);
+      box-shadow:
+        0 0 10px var(--signal-red),
+        0 0 20px var(--signal-red-glow);
+    }
+
+    .btn-label-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      flex-grow: 1;
+    }
+
+    .btn-main-label {
+      font-size: 1.7vmin;
+      font-weight: 800;
+      color: #a0aec0;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      transition: all 0.15s ease;
+    }
+
+    .neo-btn-large:hover .btn-main-label {
+      color: #ffffff;
+      text-shadow: 0 0 8px rgba(255, 255, 255, 0.2);
+    }
+
+    .btn-sub-label {
+      font-size: 1vmin;
+      font-weight: 500;
+      color: #4a5568;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      transition: all 0.15s ease;
+    }
+
+    .neo-btn-large:hover .btn-sub-label {
+      color: var(--signal-green);
+      opacity: 0.85;
+    }
+    .neo-btn-large.color-yellow:hover .btn-sub-label {
+      color: var(--signal-yellow);
+    }
+    .neo-btn-large.color-red:hover .btn-sub-label {
+      color: var(--signal-red);
+    }
+
+    .cursor-arrow-large {
+      color: var(--signal-green);
+      font-size: 1.8vmin;
+      font-weight: bold;
+      margin-left: 1vmin;
+      opacity: 0;
+      transform: scale(0.9);
+      transition: all 0.15s ease;
+    }
+
+    .neo-btn-large:hover .cursor-arrow-large {
+      opacity: 1;
+      transform: scale(1.15);
+      animation: arrow-blink 0.4s infinite alternate;
+    }
+    .neo-btn-large.color-yellow:hover .cursor-arrow-large {
+      color: var(--signal-yellow);
+    }
+    .neo-btn-large.color-red:hover .cursor-arrow-large {
+      color: var(--signal-red);
+    }
+
+    @keyframes arrow-blink {
+      0% { opacity: 0.4; }
+      100% { opacity: 1; }
+    }
+
+    /* Footer Metadata */
+    .title-screen-footer {
+      z-index: 2;
+      width: 100%;
+      margin-top: 1vmin;
+    }
+
+    .footer-deco-line {
+      height: 1px;
+      background: linear-gradient(
+        to right,
+        transparent,
+        rgba(255, 255, 255, 0.05) 20%,
+        rgba(255, 255, 255, 0.05) 80%,
+        transparent
+      );
+      width: 100%;
+      margin-bottom: 0.8vmin;
+    }
+
+    .footer-status-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.9vmin;
+      color: #4a5568;
+      letter-spacing: 0.15em;
+      padding: 0 1.6vmin;
+      text-transform: uppercase;
+    }
+
+    .footer-center-prompt {
+      color: #718096;
+      font-weight: bold;
+    }
+
+    /* Adaptive UI for Smaller Devices / Mobile Portals */
+    @media (max-width: 768px) and (pointer: coarse) {
+      .cabinet-outer {
+        width: 100vw;
+        height: 100vh;
+        border-radius: 0;
+        padding: 12px;
+        box-shadow: none;
+        border: none;
+      }
+
+      .screen-inner {
+        border-radius: 0;
+        padding: 16px 12px;
+      }
+
+      .gateway-panel {
+        padding: 10px;
+        border-radius: 8px;
+      }
+
+      .led-dot {
+        width: 8px;
+        height: 8px;
+      }
+
+      .gateway-label {
+        font-size: 10px;
+      }
+
+      .gateway-link {
+        font-size: 11px;
+      }
+
+      .title-banner h1 {
+        font-size: 24px;
+      }
+
+      .subtitle-text {
+        font-size: 10px;
+      }
+
+      .system-tag {
+        font-size: 9px;
+        padding: 4px 10px;
+      }
+
+      .btn-container {
+        max-width: none;
+        gap: 12px;
+      }
+
+      .neo-btn-large {
+        padding: 16px;
+        border-radius: 10px;
+      }
+
+      .btn-indicator-light {
+        width: 8px;
+        height: 8px;
+        margin-right: 14px;
+      }
+
+      .btn-main-label {
+        font-size: 14px;
+      }
+
+      .btn-sub-label {
+        font-size: 9px;
+      }
+
+      .cursor-arrow-large {
+        font-size: 14px;
+      }
+
+      .footer-status-bar {
+        font-size: 7px;
+        padding: 0;
+      }
+
+      .footer-center-prompt {
+        display: none;
+      }
+    }
+
+    @media (max-height: 600px) {
+      .title-banner h1 {
+        font-size: 22px;
+      }
+      .neo-btn-large {
+        padding: 10px 16px;
+      }
+    }
+  </style>
 </head>
 <body>
-    <h1>Steven Casteel</h1>
-    <p>Welcome to my page. Check out some of my projects below:</p>
-    
-    <h2>My Games</h2>
-    <ul>
-        <li><a href="/BOX-BATTLE/">BOX-BATTLE</a> - An arena game built in Godot.</li>
-        <li><a href="/silk/">Silk</a> - Another of my web projects.</li>
-    </ul>
+
+  <div class="app-wrapper">
+    <div class="cabinet-outer crt-scanlines crt-flicker">
+      <div class="screen-inner">
+        
+        <!-- Top Status Gateway to www.stevencasteel.com -->
+        <div class="gateway-panel">
+          <div class="gateway-status">
+            <div class="led-dot"></div>
+            <span class="gateway-label">CENTRAL UPLINK</span>
+          </div>
+          <a class="gateway-link" href="https://www.stevencasteel.com" target="_blank">
+            WWW.STEVENCASTEEL.COM ↗
+          </a>
+        </div>
+
+        <!-- Terminal Header -->
+        <div class="title-screen-header">
+          <div class="title-banner">
+            <div class="system-tag">STEVEN CASTEEL // WEB HUB</div>
+            <h1>CENTRAL PORTAL</h1>
+            <p class="subtitle-text">SELECT HOSTED NODE</p>
+          </div>
+        </div>
+
+        <!-- Project Links Selector (styled as Neomorphic Cabinet Buttons) -->
+        <div class="btn-container">
+          
+          <!-- Node 01: BOX BATTLE -->
+          <a class="neo-btn-large" href="/BOX-BATTLE/">
+            <div class="btn-indicator-light"></div>
+            <div class="btn-label-group">
+              <span class="btn-main-label">BOX BATTLE</span>
+              <span class="btn-sub-label">PLAY THE RETRO PLATFORMER ARENA ENGINE</span>
+            </div>
+            <span class="cursor-arrow-large">▶</span>
+          </a>
+
+          <!-- Node 02: SILK -->
+          <a class="neo-btn-large color-yellow" href="/silk/">
+            <div class="btn-indicator-light"></div>
+            <div class="btn-label-group">
+              <span class="btn-main-label">SILK</span>
+              <span class="btn-sub-label">LAUNCH THE CANVAS GENERATOR PROTOCOL</span>
+            </div>
+            <span class="cursor-arrow-large">▶</span>
+          </a>
+
+          <!-- Node 03: STEVENCASTEEL.COM PORTFOLIO -->
+          <a class="neo-btn-large color-red" href="https://www.stevencasteel.com" target="_blank">
+            <div class="btn-indicator-light"></div>
+            <div class="btn-label-group">
+              <span class="btn-main-label">MAIN PORTFOLIO</span>
+              <span class="btn-sub-label">ACCESS FULL CREATIVE AND TECHNICAL ARCHIVE</span>
+            </div>
+            <span class="cursor-arrow-large">▶</span>
+          </a>
+
+        </div>
+
+        <!-- Cabinet Footer -->
+        <div class="title-screen-footer">
+          <div class="footer-deco-line"></div>
+          <div class="footer-status-bar">
+            <span>UPLINK: ONLINE</span>
+            <span class="footer-center-prompt">HOVER NODE TO ENGAGE LED INDICATORS</span>
+            <span>SYSTEM: V1.0.0</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
 </body>
 </html>
