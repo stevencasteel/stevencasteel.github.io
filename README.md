@@ -9,7 +9,7 @@ It is styled as a unified retro terminal hub utilizing the design language, colo
 ## Active Uplinks
 
 *   **Uplink Gateway:** [stevencasteel.com](https://www.stevencasteel.com) — Main portfolio and professional archive.
-*   **Node 01:** [BOX BATTLE](https://stevencasteel.github.io/BOX-BATTLE/) — Retro action platformer arena.
+*   **Node 01:** [BOX BATTLE](https://stevencasteel.github.io/boxbattle/) — Retro action platformer arena.
 *   **Node 02:** [Silk](https://stevencasteel.github.io/silk/) — Canvas graphics engine/experiment.
 
 ---
